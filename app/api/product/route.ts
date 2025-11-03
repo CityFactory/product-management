@@ -1,8 +1,7 @@
-// File: app/api/product/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import axios, { isAxiosError } from 'axios';
 
-// Pastikan port :8001 sesuai dengan port backend Anda
+
 const BASE_URL = process.env.EXTERNAL_API_URL || 'http://localhost:8001';
 const EXTERNAL_API_ENDPOINT = `${BASE_URL}/api/web/v1/product`;
 
@@ -77,10 +76,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-/**
- * Proxy DELETE /api/product
- * Menghapus produk berdasarkan product_id.
- */
+
 export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const productId = searchParams.get('product_id');
@@ -90,7 +86,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   try {
-    // Panggil API eksternal untuk menghapus produk
+    // API eksternal untuk menghapus produk
     const response = await axios.delete(EXTERNAL_API_ENDPOINT, {
       params: { product_id: productId },
     });

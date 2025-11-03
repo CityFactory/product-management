@@ -1,9 +1,8 @@
-// File: app/layout.tsx
 import React from 'react';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { ConfigProvider, App } from 'antd'; // 1. Import App
+import { ConfigProvider, App } from 'antd';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -29,7 +28,7 @@ export default function RootLayout({
               },
             }}
           >
-            {/* 2. Bungkus children dengan <App> */}
+            {/* <App> */}
             <App>{children}</App>
           </ConfigProvider>
         </AntdRegistry>
