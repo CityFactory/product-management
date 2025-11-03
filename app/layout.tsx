@@ -1,8 +1,9 @@
+// File: app/layout.tsx
 import React from 'react';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, App } from 'antd'; // 1. Import App
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -23,13 +24,13 @@ export default function RootLayout({
         <AntdRegistry>
           <ConfigProvider
             theme={{
-              // Anda bisa mengkustomisasi tema Antd di sini jika mau
               token: {
                 colorPrimary: '#00b96b',
               },
             }}
           >
-            {children}
+            {/* 2. Bungkus children dengan <App> */}
+            <App>{children}</App>
           </ConfigProvider>
         </AntdRegistry>
       </body>

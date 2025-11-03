@@ -1,103 +1,64 @@
-// Lokasi file: app/api/product/route.ts
-
 import { NextResponse, type NextRequest } from 'next/server';
 import axios, { isAxiosError } from 'axios';
 
 // ----------------------------------------------------------------------
-// ⚠️ PENTING: Pastikan URL ini SAMA dengan di file 'products/route.ts'
+// Ganti 'http://localhost:8000' dengan URL backend Anda
 // ----------------------------------------------------------------------
-const BASE_URL = process.env.EXTERNAL_API_URL || 'http://localhost:8000';
+const BASE_URL = process.env.EXTERNAL_API_URL || 'http://localhost:8001';
+const EXTERNAL_API_ENDPOINT = `${BASE_URL}/api/web/v1/products`;
 
-// Ini adalah endpoint eksternal yang akan kita panggil
-const EXTERNAL_API_ENDPOINT = `${BASE_URL}/api/web/v1/product`;
-
-/**
- * Handle GET /api/product
- * Mendapatkan satu produk berdasarkan product_id
- * [cite: 52]
- */
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const productId = searchParams.get('product_id');
-
-  if (!productId) {
-    return NextResponse.json({ error: 'product_id query is required' }, { status: 400 });
-  }
-
   try {
+    const { searchParams } = new URL(request.url);
+
+    // 1. Ambil params dari frontend
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '10', 10);
+
+    // 2. PERBAIKAN DI SINI:
+    // Ambil 'search'. Jika null (tidak dikirim), jadikan string kosong "".
+    const search = searchParams.get('search') || '';
+
+    // 3. Hitung offset
+    const offset = (page - 1) * limit;
+
+    // 4. Siapkan params untuk dikirim ke API EKSTERNAL
+    // Kita akan gunakan object biasa agar lebih mudah dibaca
+    const params = {
+      limit: limit,
+      offset: offset,
+      search: search, // Kita sekarang SELALU mengirim 'search'
+    };
+
+    // 5. Panggil API eksternal dengan Axios
     const response = await axios.get(EXTERNAL_API_ENDPOINT, {
-      params: { product_id: productId },
+      params: params,
     });
+
+    // 6. Kembalikan data dari API eksternal ke frontend
     return NextResponse.json(response.data);
 
   } catch (error) {
+    // 7. Penanganan error
     if (isAxiosError(error)) {
+      // Tampilkan error dari backend di console Next.js Anda untuk debugging
+      console.error(
+        'AXIOS ERROR (Gagal panggil API eksternal):',
+        error.response?.data
+      );
       return NextResponse.json(
-        { error: 'Failed to fetch product', details: error.response?.data },
+        {
+          error: 'Failed to fetch from external API',
+          details: error.response?.data,
+        },
         { status: error.response?.status || 500 }
       );
-    }
-    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
-  }
-}
-
-/**
- * Handle POST /api/product
- * Membuat produk baru
- * [cite: 53]
- */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    
-    // Panggil API eksternal untuk membuat produk
-    const response = await axios.post(EXTERNAL_API_ENDPOINT, body);
-    
-    // Kembalikan data (response.data) dari API eksternal
-    return NextResponse.json(response.data, { status: 201 }); // 201 Created
-
-  } catch (error) {
-    if (isAxiosError(error)) {
+    } else {
+      console.error('UNKNOWN ERROR:', error);
       return NextResponse.json(
-        { error: 'Failed to create product', details: error.response?.data },
-        { status: error.response?.status || 500 }
+        { error: 'An unknown error occurred' },
+        { status: 500 }
       );
     }
-    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
-  }
-}
-
-/**
- * Handle PUT /api/product
- * Memperbarui produk yang ada berdasarkan product_id
- * [cite: 54]
- */
-export async function PUT(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const productId = searchParams.get('product_id');
-
-  if (!productId) {
-    return NextResponse.json({ error: 'product_id query is required' }, { status: 400 });
-  }
-
-  try {
-    const body = await request.json();
-    
-    // Panggil API eksternal untuk memperbarui produk
-    const response = await axios.put(EXTERNAL_API_ENDPOINT, body, {
-      params: { product_id: productId },
-    });
-    
-    // Kembalikan data (response.data) dari API eksternal
-    return NextResponse.json(response.data);
-
-  } catch (error) {
-    if (isAxiosError(error)) {
-      return NextResponse.json(
-        { error: 'Failed to update product', details: error.response?.data },
-        { status: error.response?.status || 500 }
-      );
-    }
-    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }
